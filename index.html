@@ -106,15 +106,18 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
   display:none;
   background:#FEF2F2;
   border-top:1.5px solid #FCA5A5;
-  padding:9px 20px;
-  align-items:center;
+  padding:10px 16px;
+  align-items:flex-start;
   gap:10px;
   flex-shrink:0;
   z-index:10;
 }
 #time-overlay.show{display:flex}
-.overlay-msg{font-size:12px;font-weight:500;color:#EF4444;flex:1}
-#end-session-btn{flex-shrink:0;padding:7px 16px;border:none;border-radius:20px;background:#EF4444;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.overlay-steps{flex:1;min-width:0}
+.overlay-title{font-size:12px;font-weight:600;color:#EF4444;margin-bottom:4px}
+.overlay-list{font-size:11px;color:#7F1D1D;line-height:1.9;display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}
+.ostep{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#EF4444;color:#fff;font-size:9px;font-weight:700;flex-shrink:0}
+#end-session-btn{flex-shrink:0;padding:8px 16px;border:none;border-radius:20px;background:#EF4444;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap;align-self:center}
 #end-session-btn:hover{opacity:.85}
 
 /* Feedback modal */
@@ -260,9 +263,17 @@ canvas#confetti{position:absolute;inset:0;pointer-events:none;z-index:0}
 
   <!-- Time-up banner -->
   <div id="time-overlay">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span class="overlay-msg">Time is up — type <strong>END SESSION</strong> in the chat · copy your score from the bot's reply · click End Session</span>
-    <button id="end-session-btn" onclick="showFeedbackModal()">End Session →</button>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <div class="overlay-steps">
+      <div class="overlay-title">Time is up! Follow these steps:</div>
+      <div class="overlay-list">
+        <span class="ostep">1</span> Type <strong>END SESSION</strong> in the chat
+        <span class="ostep">2</span> Wait for your personal feedback from the bot
+        <span class="ostep">3</span> Copy your score from the bot's reply
+        <span class="ostep">4</span> Click <strong>Finish Simulation</strong> and paste your score
+      </div>
+    </div>
+    <button id="end-session-btn" onclick="showFeedbackModal()">Finish Simulation →</button>
   </div>
 
   <!-- Score modal -->
