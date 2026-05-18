@@ -101,19 +101,45 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
   flex:1;
 }
 
-/* Time-up banner — sits at the bottom above bot's input field */
+/* Time-up banner */
 #time-overlay{
   display:none;
   background:#FEF2F2;
   border-top:1.5px solid #FCA5A5;
   padding:9px 20px;
   align-items:center;
-  gap:8px;
+  gap:10px;
   flex-shrink:0;
   z-index:10;
 }
 #time-overlay.show{display:flex}
 .overlay-msg{font-size:12px;font-weight:500;color:#EF4444;flex:1}
+#end-session-btn{flex-shrink:0;padding:7px 16px;border:none;border-radius:20px;background:#EF4444;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+#end-session-btn:hover{opacity:.85}
+
+/* Feedback modal */
+#feedback-modal{
+  display:none;
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:50;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+#feedback-modal.show{display:flex}
+.modal-card{background:#fff;border-radius:20px;padding:28px 26px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-icon{font-size:1.6rem;text-align:center;margin-bottom:10px}
+.modal-title{font-family:Georgia,serif;font-size:1.3rem;font-weight:400;color:#111827;text-align:center;margin-bottom:6px}
+.modal-sub{font-size:12px;color:#6B7280;text-align:center;line-height:1.7;margin-bottom:16px}
+#feedback-input{width:100%;min-height:140px;padding:12px 14px;font-size:13px;font-family:Inter,sans-serif;color:#111827;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:12px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s}
+#feedback-input:focus{border-color:#6F70F6}
+#feedback-input::placeholder{color:#9CA3AF;font-style:italic}
+.modal-err{font-size:12px;color:#EF4444;text-align:center;min-height:18px;margin-top:6px}
+.modal-btn{width:100%;margin-top:14px;padding:13px;border:none;border-radius:40px;background:linear-gradient(135deg,#6F70F6,#9b8ffa);color:#fff;font-family:Georgia,serif;font-size:1rem;font-style:italic;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 16px rgba(111,112,246,.35)}
+.modal-btn:hover{opacity:.88;transform:translateY(-1px)}
+.modal-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 
 /* END */
 #screen-end{flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px;overflow-y:auto;background:var(--bg)}
@@ -250,10 +276,23 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
     ></zapier-interfaces-chatbot-embed>
   </div>
 
-  <!-- Time-up banner — below chat, above bot's native input -->
+  <!-- Time-up banner -->
   <div id="time-overlay">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span class="overlay-msg">Time is up — send your final message, then type <strong>END SESSION</strong></span>
+    <span class="overlay-msg">Time is up — send your final message, then type <strong>END SESSION</strong> in the chat</span>
+    <button id="end-session-btn" onclick="showFeedbackModal()">End Session →</button>
+  </div>
+
+  <!-- Feedback modal -->
+  <div id="feedback-modal">
+    <div class="modal-card">
+      <div class="modal-icon">✦</div>
+      <div class="modal-title">Paste the bot's evaluation</div>
+      <div class="modal-sub">Copy Annabelle's full response after typing END SESSION, and paste it below</div>
+      <textarea id="feedback-input" placeholder="Final Score: 74/100&#10;Tarot Knowledge: 20&#10;Empathy: 22&#10;Engagement: 18&#10;Intrigue: 14&#10;..."></textarea>
+      <div class="modal-err" id="modal-err"></div>
+      <button class="modal-btn" onclick="submitFeedback()">Analyze Results ◆</button>
+    </div>
   </div>
 </div>
 
@@ -285,20 +324,12 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
 </div>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwj4V_3-rhRyalyrc5W5HND4OM1oDuO3REl9p-LBH0lYpzyh8pQaTT06mtvDPs6kjQS/exec';
-// ─────────────────────────────────────────────────────────────────────────────
 
 let advisorName = '', advisorEmail = '';
 let timeLeft = 180, timerInterval = null;
-let sessionEnded = false;
-let firstBotMsgTime = null, firstAdvisorMsgTime = null;
+let sessionStartTime = null, firstAdvisorMsgTime = null;
 let msgCount = 0;
-let observer = null;
-let feedbackBuffer = '';
-let waitingForFeedback = false;
-let feedbackTimeout = null;
-let knownMessages = new Set();
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 function doLogin() {
@@ -318,22 +349,27 @@ function doLogin() {
 // ─── START SESSION ────────────────────────────────────────────────────────────
 function startSession() {
   timeLeft = 180;
-  sessionEnded = false;
-  firstBotMsgTime = null;
+  sessionStartTime = Date.now();
   firstAdvisorMsgTime = null;
   msgCount = 0;
-  feedbackBuffer = '';
-  waitingForFeedback = false;
-  knownMessages = new Set();
 
   switchScreen('screen-ready', 'screen-chat');
   updateTimer();
   timerInterval = setInterval(tick, 1000);
 
-  // Start observing Zapier bot DOM after it loads
-  setTimeout(() => {
-    startObserver();
-  }, 2000);
+  // Track first advisor message via input field interaction
+  const chatEl = document.querySelector('zapier-interfaces-chatbot-embed');
+  if (chatEl) {
+    // Listen for any keydown inside the chat area as proxy for first message
+    document.getElementById('zapier-container').addEventListener('keydown', onFirstAdvisorKey, {once: true});
+  }
+}
+
+function onFirstAdvisorKey() {
+  if (!firstAdvisorMsgTime) {
+    firstAdvisorMsgTime = Date.now();
+    msgCount++;
+  }
 }
 
 // ─── TIMER ────────────────────────────────────────────────────────────────────
@@ -354,252 +390,128 @@ function updateTimer() {
   document.getElementById('timer-box').classList.toggle('urgent', timeLeft <= 30);
 }
 
-// ─── DOM OBSERVER ─────────────────────────────────────────────────────────────
-// Tries to find Zapier chatbot messages in the DOM (Web Component / Shadow DOM)
-function startObserver() {
-  const container = document.getElementById('zapier-container');
-  if (!container) return;
-
-  observer = new MutationObserver(() => {
-    scanForMessages();
-  });
-
-  observer.observe(container, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
-
-  // Also poll as fallback every 500ms
-  setInterval(scanForMessages, 500);
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function showFeedbackModal() {
+  document.getElementById('feedback-modal').classList.add('show');
+  document.getElementById('feedback-input').focus();
 }
 
-function scanForMessages() {
-  const botEl = document.querySelector('zapier-interfaces-chatbot-embed');
-  if (!botEl) return;
-
-  // Try to access shadow root
-  const root = botEl.shadowRoot || botEl;
-
-  // Common message selectors Zapier might use
-  const selectors = [
-    '[data-testid="message"]',
-    '[class*="message"]',
-    '[class*="chat-message"]',
-    '[class*="bubble"]',
-    '[class*="msg"]',
-    'p', 'span', 'div'
-  ];
-
-  let messages = [];
-  for (const sel of selectors) {
-    try {
-      const found = root.querySelectorAll(sel);
-      if (found.length > 0) {
-        messages = Array.from(found);
-        break;
-      }
-    } catch(e) {}
+function submitFeedback() {
+  const raw = document.getElementById('feedback-input').value.trim();
+  const errEl = document.getElementById('modal-err');
+  if (!raw) { errEl.textContent = 'Please paste the bot\'s evaluation first.'; return; }
+  if (!raw.toLowerCase().includes('score')) {
+    errEl.textContent = 'This doesn\'t look like the bot\'s evaluation. Make sure to copy the full response.';
+    return;
   }
+  errEl.textContent = '';
 
-  messages.forEach(el => {
-    const text = el.textContent?.trim();
-    if (!text || text.length < 5) return;
-
-    const key = text.substring(0, 60);
-    if (knownMessages.has(key)) return;
-    knownMessages.add(key);
-
-    processNewMessage(el, text);
-  });
-}
-
-function processNewMessage(el, text) {
-  // Detect if message is from bot or user based on DOM structure/classes
-  const elStr = el.className + (el.getAttribute?.('data-role') || '') + (el.getAttribute?.('role') || '');
-  const isBot = elStr.toLowerCase().includes('bot') ||
-                elStr.toLowerCase().includes('assistant') ||
-                elStr.toLowerCase().includes('ai') ||
-                !elStr.toLowerCase().includes('user');
-
-  const now = Date.now();
-
-  if (isBot && !firstBotMsgTime) {
-    firstBotMsgTime = now;
-  }
-
-  if (!isBot) {
-    msgCount++;
-    if (!firstAdvisorMsgTime && firstBotMsgTime) {
-      firstAdvisorMsgTime = now;
-    }
-
-    // Check if advisor typed END SESSION
-    if (text.toUpperCase().includes('END SESSION') && !sessionEnded) {
-      sessionEnded = true;
-      clearInterval(timerInterval);
-      waitingForFeedback = true;
-      document.getElementById('parsing-text').textContent = 'Waiting for bot evaluation…';
-      switchScreen('screen-chat', 'screen-end');
-
-      // Give bot time to respond with feedback
-      feedbackTimeout = setTimeout(() => {
-        if (waitingForFeedback) {
-          document.getElementById('parsing-text').textContent = 'Could not detect feedback automatically. Please try again.';
-        }
-      }, 30000);
-    }
-  }
-
-  // If waiting for feedback, try to parse it
-  if (waitingForFeedback && isBot) {
-    feedbackBuffer += '\n' + text;
-    tryParseFeedback();
-  }
-}
-
-function tryParseFeedback() {
-  const text = feedbackBuffer;
-
-  // Check if we have the full feedback (contains Final Score)
-  if (!text.includes('Final Score')) return;
-
-  // Wait a bit more to make sure we have the full message
-  clearTimeout(feedbackTimeout);
-  feedbackTimeout = setTimeout(() => {
-    parseFeedback(feedbackBuffer);
-  }, 2000);
+  document.getElementById('feedback-modal').classList.remove('show');
+  switchScreen('screen-chat', 'screen-end');
+  parseFeedback(raw);
 }
 
 // ─── PARSE FEEDBACK ───────────────────────────────────────────────────────────
 function parseFeedback(raw) {
-  waitingForFeedback = false;
   document.getElementById('parsing-status').style.display = 'none';
 
-  // Parse total score: "Final Score: X/100"
-  const totalMatch = raw.match(/Final Score[:\s]+(\d+)\s*\/\s*100/i);
-  const total = totalMatch ? parseInt(totalMatch[1]) : null;
-
-  // Parse individual sections from directive format
-  // Tarot Knowledge (25 pts)
-  const tarotMatch = raw.match(/Tarot Knowledge[^:]*:\s*(\d+)/i) ||
-                     raw.match(/tarot[^:]*?(\d+)\s*\/\s*25/i);
-  // Empathy (25 pts)
-  const empathyMatch = raw.match(/Empathy[^:]*:\s*(\d+)/i) ||
-                       raw.match(/empathy[^:]*?(\d+)\s*\/\s*25/i);
-  // Engagement (25 pts in directive, we show as 15 in criteria but directive uses 25)
-  const engageMatch = raw.match(/Engagement[^:]*:\s*(\d+)/i) ||
-                      raw.match(/engagement[^:]*?(\d+)\s*\/\s*\d+/i);
-  // Intrigue (25 pts)
-  const intrigueMatch = raw.match(/Intrigue[^:]*:\s*(\d+)/i) ||
-                        raw.match(/intrigue[^:]*?(\d+)\s*\/\s*\d+/i);
-
-  // Speed score: calculate from our timer
-  const responseSeconds = (firstBotMsgTime && firstAdvisorMsgTime)
-    ? Math.round((firstAdvisorMsgTime - firstBotMsgTime) / 1000)
+  // Speed: time from session start to first keydown in chat
+  const responseSeconds = firstAdvisorMsgTime
+    ? Math.round((firstAdvisorMsgTime - sessionStartTime) / 1000)
     : null;
   const speedScore = responseSeconds === null ? 10
-    : responseSeconds <= 7 ? 20
+    : responseSeconds <= 7  ? 20
     : responseSeconds <= 12 ? 14
     : responseSeconds <= 20 ? 8 : 3;
 
-  // Parse text sections
-  function extractSection(text, label) {
-    const rx = new RegExp(label + '[\\s\\S]{0,30}?:\\s*([^\\n]{20,}(?:\\n(?![A-Z][a-z]|\\d+\\.)[^\\n]{0,})*)', 'i');
-    const m = text.match(rx);
+  // Parse total score
+  const totalMatch = raw.match(/Final Score[:\s]+(\d+)\s*(?:\/\s*100)?/i);
+  const total = totalMatch ? parseInt(totalMatch[1]) : null;
+
+  // Parse per-criterion scores
+  function parseScore(rx) {
+    const m = raw.match(rx);
+    return m ? parseInt(m[1]) : null;
+  }
+  const tarotScore   = parseScore(/Tarot Knowledge[^:\d]*[:\s]+(\d+)/i);
+  const empathyScore = parseScore(/Empathy[^:\d]*[:\s]+(\d+)/i);
+  const engageScore  = parseScore(/Engagement[^:\d]*[:\s]+(\d+)/i);
+  const intrigueScore= parseScore(/Intrigue[^:\d]*[:\s]+(\d+)/i);
+
+  // Parse narrative sections
+  function extractSection(label) {
+    const rx = new RegExp(label + '[:\\s]+([\\s\\S]+?)(?=\\n[A-Z][^\\n]{2,}:|$)', 'i');
+    const m = raw.match(rx);
     return m ? m[1].trim() : '';
   }
+  const emotionalState = extractSection("Client'?s? Emotional State");
+  const successes      = extractSection("Strategic Successes");
+  const failures       = extractSection("Strategic Failures");
+  const verdict        = extractSection("The Mentor'?s? Verdict");
+  const tip            = extractSection("Expert Tip");
 
-  const emotionalState = extractSection(raw, "Client'?s? Emotional State");
-  const successes = extractSection(raw, "Strategic Successes");
-  const failures = extractSection(raw, "Strategic Failures");
-  const verdict = extractSection(raw, "The Mentor'?s? Verdict");
-  const tip = extractSection(raw, "Expert Tip");
+  // Calculate display total
+  const displayTotal = total !== null ? total :
+    (tarotScore||0) + (empathyScore||0) + speedScore + (engageScore||0) + (intrigueScore||0);
 
-  // Display score
+  // Render score
   const scoreNum = document.getElementById('score-num');
-  const displayTotal = total !== null ? total : (
-    (tarotMatch ? parseInt(tarotMatch[1]) : 0) +
-    (empathyMatch ? parseInt(empathyMatch[1]) : 0) +
-    speedScore +
-    (engageMatch ? parseInt(engageMatch[1]) : 0) +
-    (intrigueMatch ? parseInt(intrigueMatch[1]) : 0)
-  );
-
   scoreNum.textContent = displayTotal;
   scoreNum.style.color = displayTotal >= 75 ? 'var(--mint)'
     : displayTotal >= 50 ? 'var(--gold)' : 'var(--coral)';
   document.getElementById('score-row').style.display = 'flex';
 
-  // Build criteria display
-  // We show 5 criteria: Tarot, Empathy, Speed (our calc), Engagement, Intrigue
-  const tarotScore = tarotMatch ? parseInt(tarotMatch[1]) : 0;
-  const empathyScore = empathyMatch ? parseInt(empathyMatch[1]) : 0;
-  const engageScore = engageMatch ? parseInt(engageMatch[1]) : 0;
-  const intrigueScore = intrigueMatch ? parseInt(intrigueMatch[1]) : 0;
-
+  // Render criteria bars
   const criteria = [
-    { label: '🃏 Tarot Knowledge',      score: tarotScore,   max: 25 },
-    { label: '💜 Empathy',              score: empathyScore, max: 25 },
-    { label: '⚡ First Response Speed', score: speedScore,   max: 20,
+    { label:'🃏 Tarot Knowledge',      score: tarotScore,    max: 25 },
+    { label:'💜 Empathy',              score: empathyScore,  max: 25 },
+    { label:'⚡ First Response Speed', score: speedScore,    max: 20,
       comment: responseSeconds !== null
-        ? `You responded in ${responseSeconds} seconds → ${speedScore}/20`
-        : `Response time not measured → ${speedScore}/20` },
-    { label: '🔗 Engagement',           score: engageScore,  max: 15 },
-    { label: '✨ Intrigue at the End',  score: intrigueScore,max: 15 },
+        ? `You responded in ${responseSeconds}s — ${speedScore}/20`
+        : `Response time not captured — ${speedScore}/20` },
+    { label:'🔗 Engagement',           score: engageScore,   max: 15 },
+    { label:'✨ Intrigue at the End',  score: intrigueScore, max: 15 },
   ];
 
   let html = '';
   criteria.forEach(({ label, score, max, comment }) => {
-    const pct = Math.round((score / max) * 100);
+    const s = score !== null ? score : 0;
+    const pct = Math.round((s / max) * 100);
     const color = pct >= 75 ? 'var(--mint)' : pct >= 50 ? 'var(--gold)' : 'var(--coral)';
     html += `<div class="ef-section">
       <span class="ef-label">${label}</span>
       <div class="crit-score-row">
         <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-        <span class="crit-pts" style="color:${color}">${score}/${max}</span>
+        <span class="crit-pts" style="color:${color}">${s}/${max}</span>
       </div>
       ${comment ? `<div class="ef-text">${comment}</div>` : ''}
     </div>`;
   });
 
-  // Add narrative sections from bot
-  if (emotionalState) {
-    html += `<div class="ef-section" style="padding-top:14px;border-top:1px solid var(--border)">
-      <span class="ef-label">Client's Emotional State</span>
-      <div class="ef-text">${emotionalState}</div>
-    </div>`;
-  }
-  if (successes) {
-    html += `<div class="ef-section">
-      <span class="ef-label">Strategic Successes</span>
-      <div class="ef-text">${successes}</div>
-    </div>`;
-  }
-  if (failures) {
-    html += `<div class="ef-section">
-      <span class="ef-label">Strategic Failures</span>
-      <div class="ef-text">${failures}</div>
-    </div>`;
-  }
-  if (verdict) {
-    html += `<div class="ef-section">
-      <span class="ef-label">The Mentor's Verdict</span>
-      <div class="ef-text">${verdict}</div>
-    </div>`;
-  }
-  if (tip) {
-    html += `<div class="ef-section" style="padding-top:14px;border-top:1px solid var(--border)">
-      <span class="ef-label">Expert Tip</span>
-      <div class="ef-text">${tip}</div>
-    </div>`;
-  }
-
-  // If we couldn't parse structured sections, show raw
-  if (!emotionalState && !successes && !failures) {
+  // Narrative sections
+  const sections = [
+    { key: emotionalState, label: "Client's Emotional State" },
+    { key: successes,      label: "Strategic Successes" },
+    { key: failures,       label: "Strategic Failures" },
+    { key: verdict,        label: "The Mentor's Verdict" },
+    { key: tip,            label: "Expert Tip" },
+  ];
+  const hasNarrative = sections.some(s => s.key);
+  if (hasNarrative) {
+    html += `<div style="padding-top:14px;border-top:1px solid var(--border)">`;
+    sections.forEach(({ key, label }) => {
+      if (!key) return;
+      html += `<div class="ef-section">
+        <span class="ef-label">${label}</span>
+        <div class="ef-text">${key}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  } else {
+    // Fallback: show full raw text
     html += `<div class="ef-section" style="padding-top:14px;border-top:1px solid var(--border)">
       <span class="ef-label">Full Evaluation</span>
-      <div class="ef-text" style="white-space:pre-wrap">${raw.trim()}</div>
+      <div class="ef-text" style="white-space:pre-wrap">${raw}</div>
     </div>`;
   }
 
@@ -607,51 +519,38 @@ function parseFeedback(raw) {
   fb.innerHTML = html;
   fb.style.display = 'block';
 
-  // Send to Google Sheets
+  // Send to Sheets silently
   sendToSheets(displayTotal, raw, {
-    tarot: tarotScore,
-    empathy: empathyScore,
-    speed: speedScore,
-    engage: engageScore,
-    intrigue: intrigueScore
+    tarot: tarotScore, empathy: empathyScore,
+    speed: speedScore, engage: engageScore, intrigue: intrigueScore
   }, responseSeconds);
 }
 
 // ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
 async function sendToSheets(total, feedbackText, scores, responseSeconds) {
   if (!WEBHOOK_URL) return;
-
   const payload = {
-    sheetTarget:     'trial',
-    practiceName:    'AI Trial Chat Simulation (Zapier)',
-    timestamp:       new Date().toISOString(),
-    advisorName,
-    advisorEmail,
-    clientId:        'annabelle',
-    clientName:      'Annabelle',
-    clientType:      'Tarot Consultation Simulator',
-    difficulty:      'Standard',
-    totalScore:      total,
-    scoreTarot:      scores.tarot,
-    scoreEmpathy:    scores.empathy,
-    scoreSpeed:      scores.speed,
-    scoreEngagement: scores.engage,
-    scoreIntrigue:   scores.intrigue,
+    sheetTarget: 'trial',
+    practiceName: 'AI Trial Chat Simulation (Zapier)',
+    timestamp: new Date().toISOString(),
+    advisorName, advisorEmail,
+    clientId: 'annabelle', clientName: 'Annabelle',
+    clientType: 'Tarot Consultation Simulator',
+    difficulty: 'Standard',
+    totalScore: total,
+    scoreTarot: scores.tarot, scoreEmpathy: scores.empathy,
+    scoreSpeed: scores.speed, scoreEngagement: scores.engage,
+    scoreIntrigue: scores.intrigue,
     firstResponseSec: responseSeconds,
-    msgCount,
-    feedback:        feedbackText,
+    msgCount, feedback: feedbackText,
   };
-
   try {
     await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
-  } catch (e) {
-    console.error('Sheets error:', e);
-  }
+  } catch(e) { console.error('Sheets:', e); }
 }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
@@ -660,12 +559,11 @@ function switchScreen(from, to) {
   document.getElementById(to).classList.add('active');
 }
 
-// Pre-fill from localStorage
-(function () {
+(function() {
   const n = localStorage.getItem('nebula_name');
-  const em = localStorage.getItem('nebula_email');
+  const e = localStorage.getItem('nebula_email');
   if (n) document.getElementById('adv-name').value = n;
-  if (em) document.getElementById('adv-email').value = em;
+  if (e) document.getElementById('adv-email').value = e;
 })();
 
 document.getElementById('adv-name').addEventListener('keydown', e => {
@@ -675,5 +573,6 @@ document.getElementById('adv-email').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 </script>
+
 </body>
 </html>
