@@ -93,7 +93,7 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
 @keyframes timerPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(239,68,68,.3)}}
 
 /* Zapier bot container */
-#zapier-container{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+#zapier-container{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;min-height:0}
 #zapier-container zapier-interfaces-chatbot-embed{
   display:block;
   width:100% !important;
@@ -101,27 +101,19 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
   flex:1;
 }
 
-/* Overlay shown when time is up + last message */
+/* Time-up banner — sits at the bottom above bot's input field */
 #time-overlay{
   display:none;
-  position:absolute;
-  top:0;left:0;right:0;
-  background:rgba(239,68,68,.07);
-  border-bottom:2px solid rgba(239,68,68,.3);
-  padding:10px 20px;
-  z-index:20;
+  background:#FEF2F2;
+  border-top:1.5px solid #FCA5A5;
+  padding:9px 20px;
   align-items:center;
-  justify-content:space-between;
-  gap:12px;
+  gap:8px;
   flex-shrink:0;
+  z-index:10;
 }
 #time-overlay.show{display:flex}
-.overlay-msg{font-size:13px;color:#EF4444;font-weight:500}
-#last-msg-input{flex:1;padding:9px 14px;font-size:13px;background:#fff;border:1.5px solid rgba(239,68,68,.4);border-radius:20px;outline:none;font-family:Inter,sans-serif;color:#111827;max-width:400px}
-#last-msg-input:focus{border-color:#EF4444}
-#last-send-btn{padding:9px 18px;border:none;border-radius:20px;background:#EF4444;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s}
-#last-send-btn:hover{opacity:.85}
-#last-send-btn:disabled{opacity:.4;cursor:not-allowed}
+.overlay-msg{font-size:12px;font-weight:500;color:#EF4444;flex:1}
 
 /* END */
 #screen-end{flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px;overflow-y:auto;background:var(--bg)}
@@ -248,11 +240,6 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
     </div>
   </div>
 
-  <!-- Last message overlay (shown when timer hits 0) -->
-  <div id="time-overlay">
-    <span class="overlay-msg">⏰ Time is up — send your final message, then type <strong>END SESSION</strong></span>
-  </div>
-
   <!-- Zapier bot -->
   <div id="zapier-container">
     <zapier-interfaces-chatbot-embed
@@ -261,6 +248,12 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
       height="100%"
       width="100%"
     ></zapier-interfaces-chatbot-embed>
+  </div>
+
+  <!-- Time-up banner — below chat, above bot's native input -->
+  <div id="time-overlay">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span class="overlay-msg">Time is up — send your final message, then type <strong>END SESSION</strong></span>
   </div>
 </div>
 
@@ -285,15 +278,6 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
         <div class="score-big" id="score-num">—</div>
         <div class="score-label">Total Score</div>
       </div>
-      <div class="score-sep"></div>
-      <div style="text-align:center">
-        <div class="score-big" style="font-size:1.1rem;color:var(--purple)">Annabelle</div>
-        <div class="score-label">Client</div>
-      </div>
-    </div>
-    <div class="sheets-status" id="sheets-status" style="display:none">
-      <div class="sheets-dot loading" id="sheets-dot"></div>
-      <span id="sheets-msg">Saving results…</span>
     </div>
     <div class="end-feedback" id="end-feedback" style="display:none"></div>
     <div class="end-done-note">This session has been recorded. Thank you for completing the simulation.</div>
@@ -636,10 +620,6 @@ function parseFeedback(raw) {
 // ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
 async function sendToSheets(total, feedbackText, scores, responseSeconds) {
   if (!WEBHOOK_URL) return;
-  const statusEl = document.getElementById('sheets-status');
-  const dotEl = document.getElementById('sheets-dot');
-  const msgEl = document.getElementById('sheets-msg');
-  statusEl.style.display = 'flex';
 
   const payload = {
     sheetTarget:     'trial',
@@ -669,11 +649,8 @@ async function sendToSheets(total, feedbackText, scores, responseSeconds) {
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
-    dotEl.className = 'sheets-dot ok';
-    msgEl.textContent = 'Results saved to Google Sheets ✓';
   } catch (e) {
-    dotEl.className = 'sheets-dot err';
-    msgEl.textContent = 'Could not save to Google Sheets';
+    console.error('Sheets error:', e);
   }
 }
 
