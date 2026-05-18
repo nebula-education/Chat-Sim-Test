@@ -133,53 +133,35 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
 .modal-icon{font-size:1.6rem;text-align:center;margin-bottom:10px}
 .modal-title{font-family:Georgia,serif;font-size:1.3rem;font-weight:400;color:#111827;text-align:center;margin-bottom:6px}
 .modal-sub{font-size:12px;color:#6B7280;text-align:center;line-height:1.7;margin-bottom:16px}
-#feedback-input{width:100%;min-height:140px;padding:12px 14px;font-size:13px;font-family:Inter,sans-serif;color:#111827;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:12px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s}
-#feedback-input:focus{border-color:#6F70F6}
-#feedback-input::placeholder{color:#9CA3AF;font-style:italic}
+#score-input{width:100%;padding:16px;font-size:2.2rem;font-family:Georgia,serif;font-weight:400;color:#111827;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:12px;outline:none;text-align:center;transition:border-color .2s;-moz-appearance:textfield}
+#score-input::-webkit-outer-spin-button,#score-input::-webkit-inner-spin-button{-webkit-appearance:none}
+#score-input:focus{border-color:#6F70F6}
 .modal-err{font-size:12px;color:#EF4444;text-align:center;min-height:18px;margin-top:6px}
 .modal-btn{width:100%;margin-top:14px;padding:13px;border:none;border-radius:40px;background:linear-gradient(135deg,#6F70F6,#9b8ffa);color:#fff;font-family:Georgia,serif;font-size:1rem;font-style:italic;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 16px rgba(111,112,246,.35)}
 .modal-btn:hover{opacity:.88;transform:translateY(-1px)}
 .modal-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 
 /* END */
-#screen-end{flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px;overflow-y:auto;background:var(--bg)}
-.end-wrap{position:relative;z-index:1;max-width:580px;width:100%;animation:fadeUp .4s ease both}
-.end-logo{display:flex;justify-content:center;margin-bottom:20px}
-.end-logo img{height:28px;opacity:.7}
-.end-icon{font-size:2rem;margin-bottom:12px;text-align:center}
-.end-title{font-family:Georgia,serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:400;color:var(--cream);margin-bottom:6px;text-align:center;line-height:1.3}
-.end-sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--g6);margin-bottom:20px;text-align:center}
-.score-row{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:20px;padding:18px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px}
-.score-big{font-family:Georgia,serif;font-size:3rem;font-weight:400;line-height:1}
-.score-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--g6);margin-top:4px}
-.score-sep{width:1px;height:44px;background:var(--border)}
-.end-feedback{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:20px;text-align:left}
-.ef-section{margin-bottom:18px}
-.ef-section:last-child{margin-bottom:0}
-.ef-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:6px;display:block}
-.ef-text{font-size:13px;color:var(--g9);line-height:1.8}
-.crit-score-row{display:flex;align-items:center;gap:8px;margin:6px 0 8px}
-.crit-bar-bg{flex:1;height:3px;border-radius:2px;background:var(--border)}
-.crit-bar-fill{height:100%;border-radius:2px;transition:width .7s cubic-bezier(.4,0,.2,1)}
-.crit-pts{font-size:11px;font-family:monospace;flex-shrink:0;font-weight:600}
-.sheets-status{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g6);margin-bottom:16px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px}
-.sheets-dot{width:6px;height:6px;border-radius:50%;background:var(--g4);flex-shrink:0}
-.sheets-dot.ok{background:var(--mint)}
-.sheets-dot.err{background:var(--coral)}
-.sheets-dot.loading{background:var(--gold);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.end-done-note{text-align:center;font-size:12px;color:var(--g4);margin-top:8px;font-style:italic}
-
-/* Parsing status on end screen */
-#parsing-status{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:20px;text-align:center}
-.parsing-spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.parsing-text{font-size:13px;color:var(--g6);font-style:italic}
+#screen-end{flex-direction:column;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;position:relative}
+canvas#confetti{position:absolute;inset:0;pointer-events:none;z-index:0}
+.end-wrap{position:relative;z-index:1;max-width:480px;width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;animation:fadeUp .6s ease both}
+.end-logo{display:flex;justify-content:center;margin-bottom:28px}
+.end-logo img{height:26px;opacity:.6}
+.end-congrats{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--purple);margin-bottom:14px;text-align:center}
+.end-title{font-family:Georgia,serif;font-size:clamp(1.6rem,4vw,2.4rem);font-weight:400;color:var(--cream);margin-bottom:6px;text-align:center;line-height:1.25}
+.end-name{font-size:13px;color:var(--g6);text-align:center;margin-bottom:36px}
+.score-circle{width:180px;height:180px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:32px;position:relative}
+.score-circle::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(111,112,246,.2);animation:pulseRing 2.5s ease-in-out infinite}
+.score-num{font-family:Georgia,serif;font-size:3.8rem;font-weight:400;line-height:1;letter-spacing:-2px}
+.score-denom{font-size:13px;color:var(--g6);margin-top:4px;letter-spacing:1px}
+.score-label-txt{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--g4);margin-top:6px}
+.end-note{font-size:12px;color:var(--g4);text-align:center;font-style:italic;max-width:300px;line-height:1.7}
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulseRing{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.06);opacity:.1}}
 </style>
 </head>
 <body>
@@ -279,47 +261,39 @@ html,body{height:100%;background:var(--bg);font-family:Inter,system-ui,sans-seri
   <!-- Time-up banner -->
   <div id="time-overlay">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span class="overlay-msg">Time is up — send your final message, then type <strong>END SESSION</strong> in the chat</span>
+    <span class="overlay-msg">Time is up — type <strong>END SESSION</strong> in the chat · copy your score from the bot's reply · click End Session</span>
     <button id="end-session-btn" onclick="showFeedbackModal()">End Session →</button>
   </div>
 
-  <!-- Feedback modal -->
+  <!-- Score modal -->
   <div id="feedback-modal">
     <div class="modal-card">
       <div class="modal-icon">✦</div>
-      <div class="modal-title">Paste the bot's evaluation</div>
-      <div class="modal-sub">Copy Annabelle's full response after typing END SESSION, and paste it below</div>
-      <textarea id="feedback-input" placeholder="Final Score: 74/100&#10;Tarot Knowledge: 20&#10;Empathy: 22&#10;Engagement: 18&#10;Intrigue: 14&#10;..."></textarea>
+      <div class="modal-title">Enter your score</div>
+      <div class="modal-sub">Type <strong>END SESSION</strong> in the chat, wait for the bot's reply, then copy and paste your score number here</div>
+      <input type="number" id="score-input" min="0" max="100" placeholder="e.g. 74">
       <div class="modal-err" id="modal-err"></div>
-      <button class="modal-btn" onclick="submitFeedback()">Analyze Results ◆</button>
+      <button class="modal-btn" onclick="submitScore()">See My Result ◆</button>
     </div>
   </div>
 </div>
 
 <!-- END -->
-<div class="screen star-bg" id="screen-end">
+<div class="screen" id="screen-end">
+  <canvas id="confetti"></canvas>
   <div class="end-wrap">
     <div class="end-logo">
       <img src="data:image/png;base64,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" alt="Nebula">
     </div>
-    <div class="end-icon">✦</div>
-    <h2 class="end-title">Your Trial-Chat<br>Simulation Result</h2>
-    <div class="end-sub">Annabelle · Tarot Consultation Simulator</div>
-
-    <!-- Parsing status -->
-    <div id="parsing-status">
-      <div class="parsing-spinner"></div>
-      <div class="parsing-text" id="parsing-text">Waiting for evaluation from the bot…</div>
+    <div class="end-congrats">Nebula Academy · Simulation Complete</div>
+    <h2 class="end-title">Well done,<br><span id="end-advisor-name">Advisor</span>!</h2>
+    <div class="end-name">You've completed the Tarot Consultation Simulation</div>
+    <div class="score-circle">
+      <div class="score-num" id="score-num" style="color:var(--mint)">—</div>
+      <div class="score-denom">/100</div>
+      <div class="score-label-txt">Your Score</div>
     </div>
-
-    <div class="score-row" id="score-row" style="display:none">
-      <div style="text-align:center">
-        <div class="score-big" id="score-num">—</div>
-        <div class="score-label">Total Score</div>
-      </div>
-    </div>
-    <div class="end-feedback" id="end-feedback" style="display:none"></div>
-    <div class="end-done-note">This session has been recorded. Thank you for completing the simulation.</div>
+    <div class="end-note">Your result has been recorded. Great work stepping into the advisor's role.</div>
   </div>
 </div>
 
@@ -393,137 +367,138 @@ function updateTimer() {
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 function showFeedbackModal() {
   document.getElementById('feedback-modal').classList.add('show');
-  document.getElementById('feedback-input').focus();
+  document.getElementById('score-input').focus();
 }
 
-function submitFeedback() {
-  const raw = document.getElementById('feedback-input').value.trim();
+function submitScore() {
+  const val = document.getElementById('score-input').value.trim();
   const errEl = document.getElementById('modal-err');
-  if (!raw) { errEl.textContent = 'Please paste the bot\'s evaluation first.'; return; }
-  if (!raw.toLowerCase().includes('score')) {
-    errEl.textContent = 'This doesn\'t look like the bot\'s evaluation. Make sure to copy the full response.';
-    return;
-  }
+  const score = parseInt(val);
+  if (!val || isNaN(score)) { errEl.textContent = 'Please enter your score number.'; return; }
+  if (score < 0 || score > 100) { errEl.textContent = 'Score must be between 0 and 100.'; return; }
   errEl.textContent = '';
 
   document.getElementById('feedback-modal').classList.remove('show');
+
+  // Set advisor name
+  document.getElementById('end-advisor-name').textContent = advisorName || 'Advisor';
+
+  // Set score color
+  const color = score >= 75 ? 'var(--mint)' : score >= 50 ? 'var(--gold)' : 'var(--coral)';
+  const numEl = document.getElementById('score-num');
+  numEl.textContent = score;
+  numEl.style.color = color;
+
   switchScreen('screen-chat', 'screen-end');
-  parseFeedback(raw);
+
+  // Launch confetti after screen switch
+  setTimeout(() => launchConfetti(score), 100);
+
+  // Send to Sheets
+  sendToSheets(score, null, {tarot:null,empathy:null,speed:null,engage:null,intrigue:null},
+    firstAdvisorMsgTime ? Math.round((firstAdvisorMsgTime - sessionStartTime) / 1000) : null);
 }
 
-// ─── PARSE FEEDBACK ───────────────────────────────────────────────────────────
-function parseFeedback(raw) {
-  document.getElementById('parsing-status').style.display = 'none';
+// ─── CONFETTI ─────────────────────────────────────────────────────────────────
+function launchConfetti(score) {
+  const canvas = document.getElementById('confetti');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-  // Speed: time from session start to first keydown in chat
-  const responseSeconds = firstAdvisorMsgTime
-    ? Math.round((firstAdvisorMsgTime - sessionStartTime) / 1000)
-    : null;
-  const speedScore = responseSeconds === null ? 10
-    : responseSeconds <= 7  ? 20
-    : responseSeconds <= 12 ? 14
-    : responseSeconds <= 20 ? 8 : 3;
+  const colors = score >= 75
+    ? ['#57FFA7','#6F70F6','#FFC60A','#5CCEFF','#F4F4E6']
+    : score >= 50
+    ? ['#FFC60A','#6F70F6','#5CCEFF','#F4F4E6','#AFA9EC']
+    : ['#F06050','#6F70F6','#FFC60A','#5CCEFF','#F4F4E6'];
 
-  // Parse total score
-  const totalMatch = raw.match(/Final Score[:\s]+(\d+)\s*(?:\/\s*100)?/i);
-  const total = totalMatch ? parseInt(totalMatch[1]) : null;
+  const particles = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 200,
+    r: 4 + Math.random() * 6,
+    d: 1.5 + Math.random() * 2.5,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tilt: Math.random() * 10 - 5,
+    tiltSpeed: 0.05 + Math.random() * 0.1,
+    angle: 0,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle',
+  }));
 
-  // Parse per-criterion scores
-  function parseScore(rx) {
-    const m = raw.match(rx);
-    return m ? parseInt(m[1]) : null;
-  }
-  const tarotScore   = parseScore(/Tarot Knowledge[^:\d]*[:\s]+(\d+)/i);
-  const empathyScore = parseScore(/Empathy[^:\d]*[:\s]+(\d+)/i);
-  const engageScore  = parseScore(/Engagement[^:\d]*[:\s]+(\d+)/i);
-  const intrigueScore= parseScore(/Intrigue[^:\d]*[:\s]+(\d+)/i);
+  // Also add shooting stars
+  const stars = Array.from({length: 8}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height * 0.5,
+    len: 60 + Math.random() * 80,
+    speed: 4 + Math.random() * 4,
+    opacity: 1,
+    color: colors[Math.floor(Math.random() * colors.length)],
+  }));
 
-  // Parse narrative sections
-  function extractSection(label) {
-    const rx = new RegExp(label + '[:\\s]+([\\s\\S]+?)(?=\\n[A-Z][^\\n]{2,}:|$)', 'i');
-    const m = raw.match(rx);
-    return m ? m[1].trim() : '';
-  }
-  const emotionalState = extractSection("Client'?s? Emotional State");
-  const successes      = extractSection("Strategic Successes");
-  const failures       = extractSection("Strategic Failures");
-  const verdict        = extractSection("The Mentor'?s? Verdict");
-  const tip            = extractSection("Expert Tip");
+  let frame = 0;
+  let animId;
 
-  // Calculate display total
-  const displayTotal = total !== null ? total :
-    (tarotScore||0) + (empathyScore||0) + speedScore + (engageScore||0) + (intrigueScore||0);
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    frame++;
 
-  // Render score
-  const scoreNum = document.getElementById('score-num');
-  scoreNum.textContent = displayTotal;
-  scoreNum.style.color = displayTotal >= 75 ? 'var(--mint)'
-    : displayTotal >= 50 ? 'var(--gold)' : 'var(--coral)';
-  document.getElementById('score-row').style.display = 'flex';
-
-  // Render criteria bars
-  const criteria = [
-    { label:'🃏 Tarot Knowledge',      score: tarotScore,    max: 25 },
-    { label:'💜 Empathy',              score: empathyScore,  max: 25 },
-    { label:'⚡ First Response Speed', score: speedScore,    max: 20,
-      comment: responseSeconds !== null
-        ? `You responded in ${responseSeconds}s — ${speedScore}/20`
-        : `Response time not captured — ${speedScore}/20` },
-    { label:'🔗 Engagement',           score: engageScore,   max: 15 },
-    { label:'✨ Intrigue at the End',  score: intrigueScore, max: 15 },
-  ];
-
-  let html = '';
-  criteria.forEach(({ label, score, max, comment }) => {
-    const s = score !== null ? score : 0;
-    const pct = Math.round((s / max) * 100);
-    const color = pct >= 75 ? 'var(--mint)' : pct >= 50 ? 'var(--gold)' : 'var(--coral)';
-    html += `<div class="ef-section">
-      <span class="ef-label">${label}</span>
-      <div class="crit-score-row">
-        <div class="crit-bar-bg"><div class="crit-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-        <span class="crit-pts" style="color:${color}">${s}/${max}</span>
-      </div>
-      ${comment ? `<div class="ef-text">${comment}</div>` : ''}
-    </div>`;
-  });
-
-  // Narrative sections
-  const sections = [
-    { key: emotionalState, label: "Client's Emotional State" },
-    { key: successes,      label: "Strategic Successes" },
-    { key: failures,       label: "Strategic Failures" },
-    { key: verdict,        label: "The Mentor's Verdict" },
-    { key: tip,            label: "Expert Tip" },
-  ];
-  const hasNarrative = sections.some(s => s.key);
-  if (hasNarrative) {
-    html += `<div style="padding-top:14px;border-top:1px solid var(--border)">`;
-    sections.forEach(({ key, label }) => {
-      if (!key) return;
-      html += `<div class="ef-section">
-        <span class="ef-label">${label}</span>
-        <div class="ef-text">${key}</div>
-      </div>`;
+    // Draw stars
+    stars.forEach(s => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, s.opacity);
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x - s.len, s.y + s.len * 0.3);
+      ctx.stroke();
+      ctx.restore();
+      s.x += s.speed;
+      s.y += s.speed * 0.3;
+      s.opacity -= 0.012;
     });
-    html += `</div>`;
-  } else {
-    // Fallback: show full raw text
-    html += `<div class="ef-section" style="padding-top:14px;border-top:1px solid var(--border)">
-      <span class="ef-label">Full Evaluation</span>
-      <div class="ef-text" style="white-space:pre-wrap">${raw}</div>
-    </div>`;
+
+    // Draw confetti
+    particles.forEach(p => {
+      p.angle += p.tiltSpeed;
+      p.tilt = Math.sin(p.angle) * 12;
+      p.y += p.d;
+      p.x += Math.sin(frame * 0.01 + p.tilt) * 0.6;
+
+      ctx.save();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.88;
+      if (p.shape === 'rect') {
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.tilt * 0.1);
+        ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.5);
+      } else {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      if (p.y > canvas.height + 20) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+    });
+
+    if (frame < 420) {
+      animId = requestAnimationFrame(draw);
+    } else {
+      // Fade out
+      let alpha = 1;
+      function fadeOut() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        alpha -= 0.04;
+        if (alpha > 0) requestAnimationFrame(fadeOut);
+      }
+      fadeOut();
+    }
   }
-
-  const fb = document.getElementById('end-feedback');
-  fb.innerHTML = html;
-  fb.style.display = 'block';
-
-  // Send to Sheets silently
-  sendToSheets(displayTotal, raw, {
-    tarot: tarotScore, empathy: empathyScore,
-    speed: speedScore, engage: engageScore, intrigue: intrigueScore
-  }, responseSeconds);
+  draw();
 }
 
 // ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
